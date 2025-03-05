@@ -1,0 +1,176 @@
+.tab {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-group {
+  background-color: #4b0055;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.form-label {
+  text-align: left !important;
+  color: #ffffff;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.label-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+}
+
+.input-container input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  font-size: 2rem;
+  text-align: left;
+}
+
+.input-container .token {
+  margin-left: 10px;
+  color: #ff9900;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border: 1px solid #ff9900;
+  border-radius: 8px;
+}
+
+.available {
+  font-size: 0.9rem;
+  color: #aaaaaa;
+  text-align: right;
+}
+
+.arrow {
+  text-align: center;
+  background-color: #ff9900;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 1.5rem;
+  color: #000;
+  margin: 20px auto;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plus {
+  text-align: center;
+  background-color: #efefb3;
+  border-radius: 50%;
+  padding: 10px;
+  font-size: 1.5rem;
+  color: #000;
+  margin: 20px auto;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exchange-rate {
+  margin: 20px 0;
+  text-align: center;
+  color: #ffffff;
+}
+
+.button {
+  width: 100%;
+  padding: 20px;
+  background-color: #ff9900;
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1.2rem;
+}
+
+.button:hover {
+  background-color: #e68a00;
+}
+
+.button.disabled {
+  background-color: #d3d3d3; /* 灰色背景 */
+  color: #a9a9a9; /* 灰色文字 */
+  cursor: not-allowed; /* 鼠标悬停时显示为禁止状态 */
+}
+
+.error-message {
+  color: red; /* 错误信息的文字颜色 */
+  margin: 10px 0; /* 上下边距 */
+}
+
+.custom-select {
+  appearance: none;
+  background-color: #e68a00;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 4px;
+  width: 140px;
+  color: #333;
+}
+
+.custom-select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-top-color: #333;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.label-and-select {
+  display: flex;
+  align-items: center;
+}
+
+.label-and-select .form-label {
+  margin-right: 10px;
+}
+
+.label-and-select .custom-select {
+  flex: 1;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ff9900;
+}

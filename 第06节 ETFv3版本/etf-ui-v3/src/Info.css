@@ -1,0 +1,80 @@
+.about-section {
+  background-color: #4b0055; /* 使用深紫色背景以符合设计 */
+  padding: 2rem;
+  border-radius: 20px; /* 圆角效果 */
+  color: #ffffff; /* 字体颜色为白色 */
+}
+
+.about-section h2 {
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.about-content {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 两列布局 */
+  gap: 2rem; /* 信息项之间的间距 */
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.label {
+  font-size: 1rem;
+  color: #b0b0b0; /* 较浅的颜色来区分标签 */
+  margin: 0;
+}
+
+/* PortfolioTable */
+.portfolio-table-section {
+  background-color: #4b0055; /* 深紫色背景 */
+  padding: 2rem;
+  border-radius: 20px; /* 圆角效果 */
+  color: #ffffff;
+  margin-top: 2rem;
+}
+
+.portfolio-table-section h2 {
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.portfolio-table {
+  width: 100%;
+  border-collapse: collapse; /* 合并表格边框 */
+  color: #ffffff;
+  margin-top: 1.5rem;
+}
+
+.portfolio-table th,
+.portfolio-table td {
+  padding: 1rem;
+  text-align: left; /* 左对齐表格内容 */
+  border-bottom: 1px solid #5a2d82; /* 设置表格行之间的边框 */
+}
+
+.portfolio-table th {
+  font-weight: bold;
+  border-bottom: 2px solid #8055e3; /* 更粗的分隔线用于表头 */
+}
+
+.token-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.token-icon {
+  width: 24px;
+  height: 24px;
+}
