@@ -12,7 +12,7 @@ interface IETFv3 is IETFv2 {
 
     event Rebalanced(uint256[] reservesBefore, uint256[] reservesAfter);
 
-    function rebalance() external;
+    function rebalance() external;//设置rebalance，定期重置权重；把市场市值调整成为目标市值，把过高价格的token卖出，过低价格的买入，重新恢复权重
 
     function setPriceFeeds(
         address[] memory tokens,
