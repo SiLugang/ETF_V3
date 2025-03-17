@@ -33,17 +33,17 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
         _;
     }
 
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        address[] memory tokens_,
-        uint256[] memory initTokenAmountPerShare_,
-        uint256 minMintAmount_,
-        address swapRouter_,
-        address weth_,
-        address etfQuoter_
+    constructor(//初始化变量
+        string memory name_,//名称
+        string memory symbol_,//符号
+        address[] memory tokens_,//tokens
+        uint256[] memory initTokenAmountPerShare_,//初始化每份份额
+        uint256 minMintAmount_,//最小mint
+        address swapRouter_,//swapRouter
+        address weth_,//weth地址
+        address etfQuoter_//相比V2多了一个etfQuoter_
     )
-        ETFv2(
+        ETFv2(//为什么这里又有一个ETFv2，什么用？
             name_,
             symbol_,
             tokens_,
@@ -53,15 +53,15 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
             weth_
         )
     {
-        etfQuoter = etfQuoter_;
+        etfQuoter = etfQuoter_;//etfQuoter初始化
     }
 
-    function setPriceFeeds(
-        address[] memory tokens,
-        address[] memory priceFeeds
-    ) external onlyOwner {
-        if (tokens.length != priceFeeds.length) revert DifferentArrayLength();
-        for (uint256 i = 0; i < tokens.length; i++) {
+    function setPriceFeeds(//喂价
+        address[] memory tokens,//代币地址
+        address[] memory priceFeeds//代币喂价
+    ) external onlyOwner {//外部仅有owner可以调用
+        if (tokens.length != priceFeeds.length) revert DifferentArrayLength();//前面两个数组长度不一致则报错
+        for (uint256 i = 0; i < tokens.length; i++) {//遍历，预言机获得的价格赋值
             getPriceFeed[tokens[i]] = priceFeeds[i];
         }
     }
