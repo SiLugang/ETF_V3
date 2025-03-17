@@ -10,8 +10,8 @@ import {IERC20} from "@openzeppelin/contracts@5.1.0/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts@5.1.0/interfaces/IERC20Metadata.sol";
 import {IV3SwapRouter} from "./interfaces/IV3SwapRouter.sol";
 
-contract ETFv3 is IETFv3, ETFv2 {
-    using FullMath for uint256;
+contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
+    using FullMath for uint256;//使用library的FullMath
 
     address public etfQuoter;
 
@@ -19,16 +19,16 @@ contract ETFv3 is IETFv3, ETFv2 {
     uint256 public rebalanceInterval;
     uint24 public rebalanceDeviance;
 
-    mapping(address token => address priceFeed) public getPriceFeed;
-    mapping(address token => uint24 targetWeight) public getTokenTargetWeight;
+    mapping(address token => address priceFeed) public getPriceFeed;//mapping存储了每个token的priceFeed
+    mapping(address token => uint24 targetWeight) public getTokenTargetWeight;//存储了每个token的目标权重
 
-    modifier _checkTotalWeights() {
-        address[] memory tokens = getTokens();
-        uint24 totalWeights;
-        for (uint256 i = 0; i < tokens.length; i++) {
-            totalWeights += getTokenTargetWeight[tokens[i]];
+    modifier _checkTotalWeights() {//modifier，函数修改器，用于检查？
+        address[] memory tokens = getTokens();//地址数组，存放每个token的地址？
+        uint24 totalWeights;//总权重值
+        for (uint256 i = 0; i < tokens.length; i++) {//每个代币的权重值，遍历相加
+            totalWeights += getTokenTargetWeight[tokens[i]];//相加
         }
-        if (totalWeights != HUNDRED_PERCENT) revert InvalidTotalWeights();
+        if (totalWeights != HUNDRED_PERCENT) revert InvalidTotalWeights();//总权重值必须等于百分百，否则报错
 
         _;
     }
