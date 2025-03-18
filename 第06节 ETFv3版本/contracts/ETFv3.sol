@@ -66,34 +66,34 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
         }
     }
 
-    function setTokenTargetWeights(
-        address[] memory tokens,
-        uint24[] memory targetWeights
-    ) external onlyOwner {
-        if (tokens.length != targetWeights.length) revert InvalidArrayLength();
-        for (uint256 i = 0; i < targetWeights.length; i++) {
+    function setTokenTargetWeights(//设置目标权重
+        address[] memory tokens,//token地址的数组
+        uint24[] memory targetWeights//token的权重
+    ) external onlyOwner {//外部可见，只有owner有权限
+        if (tokens.length != targetWeights.length) revert InvalidArrayLength();//判断两数组长度相等，否则报错
+        for (uint256 i = 0; i < targetWeights.length; i++) {//遍历，将目标权重赋值给targetweight
             getTokenTargetWeight[tokens[i]] = targetWeights[i];
         }
     }
 
-    function updateRebalanceInterval(uint256 newInterval) external onlyOwner {
+    function updateRebalanceInterval(uint256 newInterval) external onlyOwner {//owner权限设置更新rebalance间隔
         rebalanceInterval = newInterval;
     }
 
-    function updateRebalanceDeviance(uint24 newDeviance) external onlyOwner {
+    function updateRebalanceDeviance(uint24 newDeviance) external onlyOwner {//owner权限设置rebalance偏差度
         rebalanceDeviance = newDeviance;
     }
 
-    function addToken(address token) external onlyOwner {
+    function addToken(address token) external onlyOwner {//增加token
         _addToken(token);
     }
 
-    function removeToken(address token) external onlyOwner {
+    function removeToken(address token) external onlyOwner {//删除token
         if (
-            IERC20(token).balanceOf(address(this)) > 0 ||
+            IERC20(token).balanceOf(address(this)) > 0 ||//有该删除的token余额不为零的情况下，返回报错
             getTokenTargetWeight[token] > 0
-        ) revert Forbidden();
-        _removeToken(token);
+        ) revert Forbidden();//报错
+        _removeToken(token);//其他情况下remove
     }
 
     function rebalance() external _checkTotalWeights {
