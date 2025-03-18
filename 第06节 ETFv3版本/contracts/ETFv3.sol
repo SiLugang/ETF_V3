@@ -91,7 +91,7 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
     function removeToken(address token) external onlyOwner {//删除token
         if (
             IERC20(token).balanceOf(address(this)) > 0 ||//有该删除的token余额不为零的情况下，返回报错
-            getTokenTargetWeight[token] > 0
+            getTokenTargetWeight[token] > 0//且targetWeigth不能大于0
         ) revert Forbidden();//报错
         _removeToken(token);//其他情况下remove
     }
@@ -160,7 +160,7 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
         emit Rebalanced(reservesBefore, reservesAfter);
     }
 
-    function getTokenMarketValues()
+    function getTokenMarketValues()//获得市值
         public
         view
         returns (
@@ -170,23 +170,23 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
             uint256 totalValues
         )
     {
-        tokens = getTokens();
+        tokens = getTokens();//tokens列表
         uint256 length = tokens.length;
-        tokenPrices = new int256[](length);
-        tokenMarketValues = new uint256[](length);
-        for (uint256 i = 0; i < length; i++) {
-            AggregatorV3Interface priceFeed = AggregatorV3Interface(
-                getPriceFeed[tokens[i]]
+        tokenPrices = new int256[](length);//初始化tokenPrice
+        tokenMarketValues = new uint256[](length);//初始化marketValue
+        for (uint256 i = 0; i < length; i++) {//遍历
+            AggregatorV3Interface priceFeed = AggregatorV3Interface(//chianlink提供的接口
+                getPriceFeed[tokens[i]]//取出pricefeed
             );
-            if (address(priceFeed) == address(0))
-                revert PriceFeedNotFound(tokens[i]);
-            (, tokenPrices[i], , , ) = priceFeed.latestRoundData();
+            if (address(priceFeed) == address(0))//如果该地址为0地址，则报错。
+                revert PriceFeedNotFound(tokens[i]);//报错
+            (, tokenPrices[i], , , ) = priceFeed.latestRoundData();//获得价格
 
-            uint8 tokenDecimals = IERC20Metadata(tokens[i]).decimals();
-            uint256 reserve = IERC20(tokens[i]).balanceOf(address(this));
-            tokenMarketValues[i] = reserve.mulDiv(
-                uint256(tokenPrices[i]),
-                10 ** tokenDecimals
+            uint8 tokenDecimals = IERC20Metadata(tokens[i]).decimals();//该代币的精度拿出来
+            uint256 reserve = IERC20(tokens[i]).balanceOf(address(this));//该代币在池子中的储备量
+            tokenMarketValues[i] = reserve.mulDiv(//reserve*该price
+                uint256(tokenPrices[i]),//int256的转换为uint256，做运算
+                10 ** tokenDecimals//统一精度？
             );
             totalValues += tokenMarketValues[i];
         }
