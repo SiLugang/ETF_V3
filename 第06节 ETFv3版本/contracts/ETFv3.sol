@@ -96,11 +96,11 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
         _removeToken(token);//其他情况下remove
     }
 
-    function rebalance() external _checkTotalWeights {
+    function rebalance() external _checkTotalWeights {//检查权重是否为百分百
         // 当前是否到了允许rebalance的时间
-        if (block.timestamp < lastRebalanceTime + rebalanceInterval)
-            revert NotRebalanceTime();
-        lastRebalanceTime = block.timestamp;
+        if (block.timestamp < lastRebalanceTime + rebalanceInterval)//判断是否到达rebalance时间，当前时间必须大于上次rebalance时间+rebalance间隔
+            revert NotRebalanceTime();//返回报错
+        lastRebalanceTime = block.timestamp;//将当前时间戳赋值给上次rebalance时间
 
         // 计算出每个币的市值和总市值
         (
@@ -108,7 +108,7 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
             int256[] memory tokenPrices,
             uint256[] memory tokenMarketValues,
             uint256 totalValues
-        ) = getTokenMarketValues();
+        ) = getTokenMarketValues();//这是什么格式？把等号右边赋值给左边？
 
         // 计算每个币需要rebalance进行swap的数量
         int256[] memory tokenSwapableAmounts = new int256[](tokens.length);
