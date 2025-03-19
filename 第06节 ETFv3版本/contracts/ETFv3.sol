@@ -110,20 +110,20 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
             uint256 totalValues
         ) = getTokenMarketValues();//这是什么格式？把等号右边赋值给左边？
 
-        // 计算每个币需要rebalance进行swap的数量
-        int256[] memory tokenSwapableAmounts = new int256[](tokens.length);
-        uint256[] memory reservesBefore = new uint256[](tokens.length);
-        for (uint256 i = 0; i < tokens.length; i++) {
-            reservesBefore[i] = IERC20(tokens[i]).balanceOf(address(this));
+        // 计算每个币需要rebalance进行swap的数量-----计算每种代币应该买多少，卖多少
+        int256[] memory tokenSwapableAmounts = new int256[](tokens.length);//要进行swap的数量
+        uint256[] memory reservesBefore = new uint256[](tokens.length);//每个代币在互换之前的储备量是多少
+        for (uint256 i = 0; i < tokens.length; i++) {//遍历
+            reservesBefore[i] = IERC20(tokens[i]).balanceOf(address(this));//读出每个代币的余额
 
-            if (getTokenTargetWeight[tokens[i]] == 0) continue;
+            if (getTokenTargetWeight[tokens[i]] == 0) continue;//目标权重等于0，则跳过
 
             uint256 weightedValue = (totalValues *
-                getTokenTargetWeight[tokens[i]]) / HUNDRED_PERCENT;
+                getTokenTargetWeight[tokens[i]]) / HUNDRED_PERCENT;//算出权重value
             uint256 lowerValue = (weightedValue *
-                (HUNDRED_PERCENT - rebalanceDeviance)) / HUNDRED_PERCENT;
+                (HUNDRED_PERCENT - rebalanceDeviance)) / HUNDRED_PERCENT;//下限value=权重*（100%+浮动值）/100%
             uint256 upperValue = (weightedValue *
-                (HUNDRED_PERCENT + rebalanceDeviance)) / HUNDRED_PERCENT;
+                (HUNDRED_PERCENT + rebalanceDeviance)) / HUNDRED_PERCENT;//上限value=权重*（100%+浮动值）/100%
             if (
                 tokenMarketValues[i] < lowerValue ||
                 tokenMarketValues[i] > upperValue
