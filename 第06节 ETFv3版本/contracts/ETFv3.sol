@@ -125,39 +125,39 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
             uint256 upperValue = (weightedValue *
                 (HUNDRED_PERCENT + rebalanceDeviance)) / HUNDRED_PERCENT;//上限value=权重*（100%+浮动值）/100%
             if (
-                tokenMarketValues[i] < lowerValue ||
+                tokenMarketValues[i] < lowerValue ||//在这个区间以外的values值，触发rebalance
                 tokenMarketValues[i] > upperValue
             ) {
                 int256 deltaValue = int256(weightedValue) -
-                    int256(tokenMarketValues[i]);
-                uint8 tokenDecimals = IERC20Metadata(tokens[i]).decimals();
+                    int256(tokenMarketValues[i]);//deltaValue什么意思？----------正数或者负数，正数代表权重值大于市值，需要买入，复数代表权重值小于市值，需要卖出。
+                uint8 tokenDecimals = IERC20Metadata(tokens[i]).decimals();//精度值赋值
 
-                if (deltaValue > 0) {
+                if (deltaValue > 0) {//大于0时，正数代表权重值大于市值，需要买入
                     tokenSwapableAmounts[i] = int256(
                         uint256(deltaValue).mulDiv(
                             10 ** tokenDecimals,
                             uint256(tokenPrices[i])
-                        )
+                        )//需要买入的总量
                     );
-                } else {
-                    tokenSwapableAmounts[i] = -int256(
-                        uint256(-deltaValue).mulDiv(
+                } else {//小于0时，需要卖出
+                    tokenSwapableAmounts[i] = -int256(//算出的结果还原成负数
+                        uint256(-deltaValue).mulDiv(//mulDiv只能算uint类型
                             10 ** tokenDecimals,
                             uint256(tokenPrices[i])
-                        )
+                        )//需要卖出的总量
                     );
                 }
             }
         }
 
-        _swapTokens(tokens, tokenSwapableAmounts);
+        _swapTokens(tokens, tokenSwapableAmounts);//对每个代币进行swap
 
-        uint256[] memory reservesAfter = new uint256[](tokens.length);
-        for (uint256 i = 0; i < reservesAfter.length; i++) {
-            reservesAfter[i] = IERC20(tokens[i]).balanceOf(address(this));
+        uint256[] memory reservesAfter = new uint256[](tokens.length);//兑换完成后查出余额
+        for (uint256 i = 0; i < reservesAfter.length; i++) {//遍历
+            reservesAfter[i] = IERC20(tokens[i]).balanceOf(address(this));//对reservesAfter进行赋值
         }
 
-        emit Rebalanced(reservesBefore, reservesAfter);
+        emit Rebalanced(reservesBefore, reservesAfter);//抛出事件，返回rebalance兑换前后
     }
 
     function getTokenMarketValues()//获得市值
@@ -192,68 +192,68 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
         }
     }
 
-    function _swapTokens(
-        address[] memory tokens,
-        int256[] memory tokenSwapableAmounts
+    function _swapTokens(//swap函数
+        address[] memory tokens,//token地址
+        int256[] memory tokenSwapableAmounts//每个代币的swapamount
     ) internal {
         address usdc = IETFQuoter(etfQuoter).usdc();
         // 第一步：先进行所有的卖出操作，确保有足够的USDC余额
-        uint256 usdcRemaining = _sellTokens(usdc, tokens, tokenSwapableAmounts);
+        uint256 usdcRemaining = _sellTokens(usdc, tokens, tokenSwapableAmounts);//要卖出的换成USDC
         // 第二步：进行所有的买入操作
-        usdcRemaining = _buyTokens(
+        usdcRemaining = _buyTokens(//用USDC买入其他代币
             usdc,
             tokens,
             tokenSwapableAmounts,
             usdcRemaining
         );
         // 如果usdc依然还有余存，按权重比例分配买入每个代币
-        if (usdcRemaining > 0) {
-            uint256 usdcLeft = usdcRemaining;
-            for (uint256 i = 0; i < tokens.length; i++) {
+        if (usdcRemaining > 0) {//剩余的USDC
+            uint256 usdcLeft = usdcRemaining;//赋值给usdcLeft
+            for (uint256 i = 0; i < tokens.length; i++) {//遍历
                 uint256 amountIn = (usdcRemaining *
-                    getTokenTargetWeight[tokens[i]]) / HUNDRED_PERCENT;
-                if (amountIn == 0) continue;
-                if (amountIn > usdcLeft) {
-                    amountIn = usdcLeft;
+                    getTokenTargetWeight[tokens[i]]) / HUNDRED_PERCENT;//剩余USDC*权重/100%---要花多少USDC
+                if (amountIn == 0) continue;//余额为0，继续
+                if (amountIn > usdcLeft) {//由于精度问题，可能会出现大于left的情况
+                    amountIn = usdcLeft;//因此将left的值赋值给amountin
                 }
-                (bytes memory path, ) = IETFQuoter(etfQuoter).quoteExactIn(
+                (bytes memory path, ) = IETFQuoter(etfQuoter).quoteExactIn(//算出每个token的swap路径和amountin
                     usdc,
                     tokens[i],
                     amountIn
                 );
-                IV3SwapRouter(swapRouter).exactInput(
+                IV3SwapRouter(swapRouter).exactInput(//
                     IV3SwapRouter.ExactInputParams({
                         path: path,
-                        recipient: address(this),
+                        recipient: address(this),//swap结果分配到当前地址
                         amountIn: amountIn,
                         amountOutMinimum: 1
                     })
                 );
-                usdcLeft -= amountIn;
-                if (usdcLeft == 0) break;
+                usdcLeft -= amountIn;//usdc减去amountin
+                if (usdcLeft == 0) break;//usdc没有剩余
             }
-        }
+        }//usdc有余存的时候，进行这些操作
     }
 
-    function _sellTokens(
-        address usdc,
-        address[] memory tokens,
-        int256[] memory tokenSwapableAmounts
-    ) internal returns (uint256 usdcRemaining) {
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (tokenSwapableAmounts[i] < 0) {
-                uint256 amountIn = uint256(-tokenSwapableAmounts[i]);
-                (bytes memory path, ) = IETFQuoter(etfQuoter).quoteExactIn(
+    function _sellTokens(//卖出token的实现
+        address usdc,//usdc地址
+        address[] memory tokens,//该token的地址
+        int256[] memory tokenSwapableAmounts//卖出token的数量
+    ) internal returns (uint256 usdcRemaining) {返回remaining
+        for (uint256 i = 0; i < tokens.length; i++) {//遍历
+            if (tokenSwapableAmounts[i] < 0) {//小于0的时候才需要卖出
+                uint256 amountIn = uint256(-tokenSwapableAmounts[i]);//转换成uint256正数
+                (bytes memory path, ) = IETFQuoter(etfQuoter).quoteExactIn(//查询路径是多少
                     tokens[i],
                     usdc,
                     amountIn
                 );
-                _approveToSwapRouter(tokens[i]);
-                usdcRemaining += IV3SwapRouter(swapRouter).exactInput(
-                    IV3SwapRouter.ExactInputParams({
-                        path: path,
-                        recipient: address(this),
-                        amountIn: amountIn,
+                _approveToSwapRouter(tokens[i]);//对代币进行approve，如果没approve过，则approve
+                usdcRemaining += IV3SwapRouter(swapRouter).exactInput(//卖出代币，加入到remaining里面
+                    IV3SwapRouter.ExactInputParams({//卖出代币
+                        path: path,//路径
+                        recipient: address(this),//接收地址
+                        amountIn: amountIn,//amountin
                         amountOutMinimum: 1
                     })
                 );
@@ -261,24 +261,24 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
         }
     }
 
-    function _buyTokens(
-        address usdc,
-        address[] memory tokens,
-        int256[] memory tokenSwapableAmounts,
-        uint256 usdcRemaining
-    ) internal returns (uint256 usdcLeft) {
-        usdcLeft = usdcRemaining;
-        _approveToSwapRouter(usdc);
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (tokenSwapableAmounts[i] > 0) {
+    function _buyTokens(//实现买入代币的逻辑
+        address usdc,//usdc
+        address[] memory tokens,//地址
+        int256[] memory tokenSwapableAmounts,//swapamount
+        uint256 usdcRemaining//usdc剩余
+    ) internal returns (uint256 usdcLeft) {//返回usdcLeft的值
+        usdcLeft = usdcRemaining;//赋值
+        _approveToSwapRouter(usdc);//approve
+        for (uint256 i = 0; i < tokens.length; i++) {//遍历
+            if (tokenSwapableAmounts[i] > 0) {//swapamount大于0的时候需要买入
                 (bytes memory path, uint256 amountIn) = IETFQuoter(etfQuoter)
-                    .quoteExactOut(
+                    .quoteExactOut(//查询路径是多少，需要多少amountIn（USDC）
                         usdc,
                         tokens[i],
                         uint256(tokenSwapableAmounts[i])
                     );
-                if (usdcLeft >= amountIn) {
-                    usdcLeft -= IV3SwapRouter(swapRouter).exactOutput(
+                if (usdcLeft >= amountIn) {//left大于等于amountin时
+                    usdcLeft -= IV3SwapRouter(swapRouter).exactOutput(//left等同于减去swap的数量？-----------amountout（买入token的数量）是确定的，
                         IV3SwapRouter.ExactOutputParams({
                             path: path,
                             recipient: address(this),
@@ -286,22 +286,22 @@ contract ETFv3 is IETFv3, ETFv2 {//继承V3，V2版本
                             amountInMaximum: type(uint256).max
                         })
                     );
-                } else if (usdcLeft > 0) {
-                    (path, ) = IETFQuoter(etfQuoter).quoteExactIn(
+                } else if (usdcLeft > 0) {//小于amountin，大于0时，因为余下的usdc值不够要购买的代币的数量，那么剩下的全部买入
+                    (path, ) = IETFQuoter(etfQuoter).quoteExactIn(//查询买入swap的路径
                         usdc,
                         tokens[i],
                         usdcLeft
                     );
-                    IV3SwapRouter(swapRouter).exactInput(
-                        IV3SwapRouter.ExactInputParams({
-                            path: path,
-                            recipient: address(this),
-                            amountIn: usdcLeft,
+                    IV3SwapRouter(swapRouter).exactInput(//买入token
+                        IV3SwapRouter.ExactInputParams({//买入
+                            path: path,//路径
+                            recipient: address(this),//地址
+                            amountIn: usdcLeft,//剩余usdc
                             amountOutMinimum: 1
                         })
                     );
-                    usdcLeft = 0;
-                    break;
+                    usdcLeft = 0;//全部卖出
+                    break;//
                 }
             }
         }
